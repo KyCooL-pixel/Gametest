@@ -25,18 +25,21 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
     @Override
     public boolean onTouchEvent(MotionEvent event){
-        if(event.getAction()==MotionEvent.ACTION_DOWN){
-            int x =(int)event.getX();
-            int y =(int)event.getY();
-            this.ghost.setDestination(x,y);
-            int movingVectorX = x - this.ghost.getX();
-            int movingVectorY = y - this.ghost.getY();
+        // handle touch event actions !!
+        switch(event.getAction()){
+            case MotionEvent.ACTION_DOWN :
+                ghost.setPosition((double) event.getX(),(double)event.getY());
+                return true;
 
-            this.ghost.setMovingVector(movingVectorX,movingVectorY);
-            return true;
+            case MotionEvent.ACTION_MOVE:
+                ghost.setPosition((double) event.getX(),(double)event.getY());
+                return true;
+
+                
         }
-        return false;
+        return super.onTouchEvent(event);
     }
+
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         ghost = new Ghost(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.ghost_right_cropped),220, 200, false));

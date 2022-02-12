@@ -13,13 +13,19 @@ import androidx.annotation.NonNull;
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     private MainThread thread;
-    private Ghost ghost;
+    private final Ghost ghost;
+    private final Joystick joystick;
 
     public GameView(Context context){
         super(context);
 
         getHolder().addCallback(this);
+        // create thread
         thread = new MainThread(getHolder(),this);
+        // intialize game objects
+        ghost = new Ghost(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.ghost_right_cropped),220, 200, false));
+        joystick = new Joystick(550,1700,100,60);
+
         setFocusable(true);
 
     }
@@ -28,21 +34,28 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         // handle touch event actions !!
         switch(event.getAction()){
             case MotionEvent.ACTION_DOWN :
-                ghost.setPosition((double) event.getX(),(double)event.getY());
+                if(joystick.isPressed((double)event.getX(), (double)event.getY())){
+                    joystick.setIsPressed(true);
+                }
                 return true;
 
             case MotionEvent.ACTION_MOVE:
-                ghost.setPosition((double) event.getX(),(double)event.getY());
+                if(joystick.getIsPressed()){
+                    joystick.setActuator((double) event.getX(),(double)event.getY());
+                }
+                return true;
+            case MotionEvent.ACTION_UP:
+                joystick.setIsPressed(false);
+                joystick.resetActuator();
                 return true;
 
-                
         }
         return super.onTouchEvent(event);
     }
 
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        ghost = new Ghost(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.ghost_right_cropped),220, 200, false));
+
         thread.setRunning(true);
         thread.start();
 
@@ -66,12 +79,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
     public void update() {
-        ghost.update();
+        joystick.update();
+        ghost.update(joystick);
     }
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (canvas != null) {
+            joystick.draw(canvas);
             ghost.draw(canvas);
         }
     }

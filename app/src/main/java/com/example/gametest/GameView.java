@@ -1,8 +1,6 @@
 package com.example.gametest;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -10,11 +8,15 @@ import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
 
+import com.example.gametest.object.Enemy;
+import com.example.gametest.object.Ghost;
+
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     private MainThread thread;
     private final Ghost ghost;
     private final Joystick joystick;
+    private final Enemy enemy;
 
     public GameView(Context context){
         super(context);
@@ -22,9 +24,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         getHolder().addCallback(this);
         // create thread
         thread = new MainThread(getHolder(),this);
+
         // intialize game objects
-        ghost = new Ghost(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.ghost_right_cropped),220, 200, false));
         joystick = new Joystick(550,1700,100,60);
+        ghost = new Ghost(getContext(),joystick,500,1000,30);
+        enemy = new Enemy(getContext(),ghost,500,1000,30);
 
         setFocusable(true);
 
@@ -80,7 +84,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
     public void update() {
         joystick.update();
-        ghost.update(joystick);
+        ghost.update();
+        enemy.update();
     }
     @Override
     public void draw(Canvas canvas) {
@@ -88,6 +93,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         if (canvas != null) {
             joystick.draw(canvas);
             ghost.draw(canvas);
+            enemy.draw(canvas);
         }
     }
 }

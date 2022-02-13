@@ -8,49 +8,75 @@ import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
 
+import com.example.gametest.object.Circle;
 import com.example.gametest.object.Enemy;
 import com.example.gametest.object.Ghost;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     private MainThread thread;
     private final Ghost ghost;
     private final Joystick joystick;
-    private final Enemy enemy;
+    private List<Enemy> enemyList = new ArrayList<Enemy>();
+    private List<Spell> spellList = new ArrayList<Spell>();
+    private int joystickPointerId = 0;
 
-    public GameView(Context context){
+    public GameView(Context context) {
         super(context);
 
         getHolder().addCallback(this);
         // create thread
-        thread = new MainThread(getHolder(),this);
+        thread = new MainThread(getHolder(), this);
 
-        // intialize game objects
-        joystick = new Joystick(550,1700,100,60);
-        ghost = new Ghost(getContext(),joystick,500,1000,30);
-        enemy = new Enemy(getContext(),ghost,500,1000,30);
+        // initialize game objects
+        joystick = new Joystick(550, 1700, 100, 60);
+        ghost = new Ghost(getContext(), joystick, 500, 1000, 30);
+
 
         setFocusable(true);
 
     }
+
     @Override
-    public boolean onTouchEvent(MotionEvent event){
+    public boolean onTouchEvent(MotionEvent event) {
         // handle touch event actions !!
-        switch(event.getAction()){
-            case MotionEvent.ACTION_DOWN :
-                if(joystick.isPressed((double)event.getX(), (double)event.getY())){
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN:
+                if (joystick.getIsPressed()) {
+                    //joystick pressed liao before this -> shoot spell
+                    spellList.add(new Spell(getContext(), ghost));
+                } else if (joystick.isPressed((double) event.getX(), (double) event.getY())) {
+                    // Joystick is pressed now -> setIsPressed = true and store id
+                    joystickPointerId =event.getPointerId((event.getActionIndex()));
                     joystick.setIsPressed(true);
+                } else {
+                    spellList.add(new Spell(getContext(), ghost));
+                    //joystick was not pressed before and for now (this update) -> shoot spell
+
                 }
                 return true;
 
             case MotionEvent.ACTION_MOVE:
-                if(joystick.getIsPressed()){
-                    joystick.setActuator((double) event.getX(),(double)event.getY());
+                //joystick was pressed previously and is now moved
+                if (joystick.getIsPressed()) {
+                    joystick.setActuator((double) event.getX(), (double) event.getY());
                 }
                 return true;
+
             case MotionEvent.ACTION_UP:
-                joystick.setIsPressed(false);
-                joystick.resetActuator();
+            case MotionEvent.ACTION_POINTER_UP:
+                if (joystickPointerId == event.getPointerId(event.getActionIndex())) {
+                    joystick.setIsPressed(false);
+                    joystick.resetActuator();
+                }
+                // joystick was let go of -? setIsPressed(false) and reset Actuator
+
+
                 return true;
 
         }
@@ -73,29 +99,73 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
         boolean retry = true;
-        while(retry){
-            try{
+        while (retry) {
+            try {
                 thread.setRunning(false);
                 thread.join();
-            }catch(InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            }
         }
+    }
+
     public void update() {
         joystick.update();
         ghost.update();
-        enemy.update();
+        //Spawn enemy if its time
+        if (Enemy.readyToSpawn()) {
+            enemyList.add(new Enemy(getContext(), ghost));
+        }
+        // update state of each enemy
+        for (Enemy enemy : enemyList) {
+            enemy.update();
+        }
+        // update state of each spell
+        for (Spell spell : spellList) {
+            spell.update();
+        }
+        //
+        //  COLLISION CHECK HERE !!!!!!!!
+        //
+        //Iterate through enemyList and check for collision for enemy, ghost and spells
+        Iterator<Enemy> iteratorEnemy = enemyList.iterator();
+        while (iteratorEnemy.hasNext()) {
+            Circle enemy = iteratorEnemy.next();
+            if (Circle.isColliding(enemy, ghost)) {
+                // CHANGE HERE TO CHANGE WHAT HAPPENS WHEN COLLISION TAKE PLACE
+                iteratorEnemy.remove();
+                // if hit by player no need to check again for spells
+                continue;
+            }
+            Iterator<Spell> iteratorSpell = spellList.iterator();
+            while (iteratorSpell.hasNext()) {
+                Circle spell = iteratorSpell.next();
+                // remove spell if collides with enemy
+                if (Circle.isColliding(spell, enemy)) {
+                    iteratorSpell.remove();
+                    iteratorEnemy.remove();
+                    break;
+                }
+            }
+        }
     }
+
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (canvas != null) {
             joystick.draw(canvas);
             ghost.draw(canvas);
-            enemy.draw(canvas);
+            for (Enemy enemy : enemyList) {
+                enemy.draw(canvas);
+            }
+            for (Spell spell : spellList) {
+                spell.draw(canvas);
+            }
         }
     }
+
+
 }
 
 

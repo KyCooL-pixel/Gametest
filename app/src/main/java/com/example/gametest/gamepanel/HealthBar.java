@@ -6,6 +6,7 @@ import android.graphics.Paint;
 
 import androidx.core.content.ContextCompat;
 
+import com.example.gametest.GameDisplay;
 import com.example.gametest.R;
 import com.example.gametest.object.Ghost;
 
@@ -32,7 +33,7 @@ public class HealthBar {
         int healthColor = ContextCompat.getColor(context,R.color.healthBar);
         healthPaint.setColor(healthColor);
     }
-    public void draw(Canvas canvas) {
+    public void draw(Canvas canvas, GameDisplay gameDisplay) {
         float x = (float)ghost.getPositionX();
         float y = (float)ghost.getPositionY();
         float distanceToGhost = 30;
@@ -45,7 +46,12 @@ public class HealthBar {
         // the larger the number the far the bar from ghost
         borderBottom = y -distanceToGhost;
         borderTop = borderBottom - height;
-        canvas.drawRect(borderLeft,borderTop,borderRight, borderBottom, borderPaint);
+        canvas.drawRect(
+                (float)gameDisplay.gameToDisplayCoordX(borderLeft),
+                (float)gameDisplay.gameToDisplayCoordY(borderTop),
+                (float)gameDisplay.gameToDisplayCoordX(borderRight),
+                (float)gameDisplay.gameToDisplayCoordY(borderBottom),
+                borderPaint);
 
         //draw health meter
         float healthLeft,healthTop,healthRight,healthBottom,healthWidth,healthHeight;
@@ -55,6 +61,11 @@ public class HealthBar {
         healthRight = healthLeft + healthWidth*healthPointPercentage;
         healthBottom = borderBottom-margin;
         healthTop = healthBottom - healthHeight;
-        canvas.drawRect(healthLeft,healthTop,healthRight,healthBottom, healthPaint);
+        canvas.drawRect(
+                (float)gameDisplay.gameToDisplayCoordX(healthLeft),
+                (float)gameDisplay.gameToDisplayCoordY(healthTop),
+                (float)gameDisplay.gameToDisplayCoordX(healthRight),
+                (float)gameDisplay.gameToDisplayCoordY(healthBottom),
+                healthPaint);
     }
 }

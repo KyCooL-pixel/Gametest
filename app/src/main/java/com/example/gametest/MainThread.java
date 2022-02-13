@@ -7,12 +7,13 @@ import android.util.Log;
 public class MainThread extends Thread {
     public static final double MAX_UPS = 45.0;
     private static final double UPS_PERIOD = 1E+3/MAX_UPS;
+    private boolean running = false;
     private SurfaceHolder surfaceHolder;
     private GameView gameView;
-    private boolean running;
     public static Canvas canvas;
     private double averageUPS;
     private double averageFPS;
+
 
     public MainThread(SurfaceHolder surfaceHolder, GameView gameView) {
 
@@ -21,21 +22,16 @@ public class MainThread extends Thread {
         this.gameView = gameView;
     }
 
-    public double getAverageUPS(){
-        return averageUPS;
+    public void startThread(){
+        Log.d("MainThread.java", "startThread()");
+        running = true;
+        start();
     }
 
-    public double getAverageFPS(){
-        return averageFPS;
-    }
-
-    public void getRunning(boolean isRunning){
-        running = isRunning;
-    }
-    public void setRunning(boolean isRunning){ running = isRunning;}
 
     @Override
     public void run(){
+        Log.d("MainThread.java", "run()");
          // declare time and cycle count vars
         int updateCount =0;
         int frameCount =0;
@@ -99,5 +95,16 @@ public class MainThread extends Thread {
             }
         }
 
+    }
+
+    public void stopThread() {
+        Log.d("MainThread.java", "stopThread()");
+        running = false;
+        // wait for thread to join
+        try{
+            join();
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
     }
 }

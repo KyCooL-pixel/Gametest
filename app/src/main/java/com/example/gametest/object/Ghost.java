@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 
 import androidx.core.content.ContextCompat;
 
+import com.example.gametest.GameDisplay;
 import com.example.gametest.gamepanel.HealthBar;
 import com.example.gametest.gamepanel.Joystick;
 import com.example.gametest.MainThread;
@@ -46,9 +47,9 @@ public class Ghost extends Circle {
 
     }
 
-    public void draw(Canvas canvas){
-        super.draw(canvas);
-        healthBar.draw(canvas);
+    public void draw(Canvas canvas, GameDisplay gameDisplay){
+        super.draw(canvas, gameDisplay);
+        healthBar.draw(canvas, gameDisplay);
     }
 
 

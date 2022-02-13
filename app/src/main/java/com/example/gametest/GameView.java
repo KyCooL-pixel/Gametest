@@ -1,7 +1,10 @@
 package com.example.gametest;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -27,6 +30,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private List<Spell> spellList = new ArrayList<Spell>();
     private int joystickPointerId = 0;
     private GameOver gameOver;
+    private GameDisplay gameDisplay;
 
     public GameView(Context context) {
         super(context);
@@ -41,6 +45,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
         // initialize game objects
         ghost = new Ghost(getContext(), joystick, 500, 1000, 30);
+
+        //  initialize game display and center around player
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        ((Activity)getContext()).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        gameDisplay = new GameDisplay(displayMetrics.widthPixels,displayMetrics.heightPixels,ghost);
 
         setFocusable(true);
 
@@ -90,28 +99,24 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-
-        thread.setRunning(true);
-        thread.start();
-
+        Log.d("GameView.java","surfaceCreated()");
+        // create a thread every time a thread gets terminated, because a thread object can only run ONCE
+        if (thread.getState().equals(Thread.State.TERMINATED)) {
+            SurfaceHolder surfaceHolder = getHolder();
+            surfaceHolder.addCallback(this);
+            thread = new MainThread(surfaceHolder, this);
+        }
+        thread.startThread();
     }
 
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-
+        Log.d("GameView.java","surfaceChanged()");
     }
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-        boolean retry = true;
-        while (retry) {
-            try {
-                thread.setRunning(false);
-                thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        Log.d("GameView.java","surfaceDestroyed()");
     }
 
     public void update() {
@@ -160,29 +165,36 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 }
             }
         }
+        gameDisplay.update();
     }
 
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (canvas != null) {
-            joystick.draw(canvas);
-            ghost.draw(canvas);
+            // draw game objects
+            ghost.draw(canvas,gameDisplay);
             for (Enemy enemy : enemyList) {
-                enemy.draw(canvas);
+                enemy.draw(canvas,gameDisplay);
             }
             for (Spell spell : spellList) {
-                spell.draw(canvas);
+                spell.draw(canvas, gameDisplay);
             }
 
             // Draw Game Over if ghost dead
             if(ghost.getHealthPoints()<=0){
                 gameOver.draw(canvas);
             }
+
+            // draw game panels
+            joystick.draw(canvas);
         }
     }
 
 
+    public void pause() {
+        thread.stopThread();
+    }
 }
 
 

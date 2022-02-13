@@ -8,6 +8,8 @@ import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
 
+import com.example.gametest.gamepanel.GameOver;
+import com.example.gametest.gamepanel.Joystick;
 import com.example.gametest.object.Circle;
 import com.example.gametest.object.Enemy;
 import com.example.gametest.object.Ghost;
@@ -24,6 +26,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private List<Enemy> enemyList = new ArrayList<Enemy>();
     private List<Spell> spellList = new ArrayList<Spell>();
     private int joystickPointerId = 0;
+    private GameOver gameOver;
 
     public GameView(Context context) {
         super(context);
@@ -32,10 +35,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         // create thread
         thread = new MainThread(getHolder(), this);
 
-        // initialize game objects
-        joystick = new Joystick(550, 1700, 100, 60);
-        ghost = new Ghost(getContext(), joystick, 500, 1000, 30);
+        //initialize game panels
+        gameOver = new GameOver(context);
+        joystick = new Joystick(550, 1900, 130, 80);
 
+        // initialize game objects
+        ghost = new Ghost(getContext(), joystick, 500, 1000, 30);
 
         setFocusable(true);
 
@@ -110,9 +115,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void update() {
+        // if game over stop thread (update)
+        if(ghost.getHealthPoints()<=0){
+            return;
+        }
+
+        // update game state
         joystick.update();
         ghost.update();
-        //Spawn enemy if its time
+        //Spawn enemy if it's time
         if (Enemy.readyToSpawn()) {
             enemyList.add(new Enemy(getContext(), ghost));
         }
@@ -134,6 +145,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             if (Circle.isColliding(enemy, ghost)) {
                 // CHANGE HERE TO CHANGE WHAT HAPPENS WHEN COLLISION TAKE PLACE
                 iteratorEnemy.remove();
+                ghost.setHealthPoints(ghost.getHealthPoints()-1);
                 // if hit by player no need to check again for spells
                 continue;
             }
@@ -161,6 +173,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             }
             for (Spell spell : spellList) {
                 spell.draw(canvas);
+            }
+
+            // Draw Game Over if ghost dead
+            if(ghost.getHealthPoints()<=0){
+                gameOver.draw(canvas);
             }
         }
     }

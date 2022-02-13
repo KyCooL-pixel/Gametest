@@ -8,6 +8,11 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="player">#FF0000</color>
-    <color name="enemy">#00FF00</color>
+    <color name="enemy">#AAFF00</color>
+    <color name="healthBar">#00FF00</color>
     <color name="spell">#5B38F4</color>
+    <color name="healthBarBorder">#D3D3D3</color>
+    <color name="gameOver">#660000</color>
+
+
 </resources>

@@ -139,23 +139,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         //  COLLISION CHECK HERE !!!!!!!!
         //
         //Iterate through enemyList and check for collision for enemy, ghost and spells
-        Iterator<Enemy> iteratorEnemy = enemyList.iterator();
-        while (iteratorEnemy.hasNext()) {
-            Circle enemy = iteratorEnemy.next();
+        for (Enemy enemy : enemyList) {
             if (Circle.isColliding(enemy, ghost)) {
-                // CHANGE HERE TO CHANGE WHAT HAPPENS WHEN COLLISION TAKE PLACE
-                iteratorEnemy.remove();
+                // CHANGE HERE TO CHANGE WHAT HAPPENS WHEN COLLISION TAKE PLACE=
+                enemyList.remove(enemy);
                 ghost.setHealthPoints(ghost.getHealthPoints()-1);
                 // if hit by player no need to check again for spells
                 continue;
             }
-            Iterator<Spell> iteratorSpell = spellList.iterator();
-            while (iteratorSpell.hasNext()) {
-                Circle spell = iteratorSpell.next();
+            for (Spell spell : spellList) {
                 // remove spell if collides with enemy
                 if (Circle.isColliding(spell, enemy)) {
-                    iteratorSpell.remove();
-                    iteratorEnemy.remove();
+                    spellList.remove(spell);
+                    enemyList.remove(enemy);
                     break;
                 }
             }

@@ -45,6 +45,7 @@ public class Ghost extends Circle {
             directionY = velocityY/distance;
         }
 
+        // update AimDirection according to nearest enemy
     }
 
     public void draw(Canvas canvas, GameDisplay gameDisplay){

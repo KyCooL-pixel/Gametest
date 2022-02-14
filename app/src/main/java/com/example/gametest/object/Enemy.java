@@ -9,12 +9,14 @@ import com.example.gametest.R;
 
 public class Enemy extends Circle{
 
-    private static final double SPAWNS_PER_MINUTE = 20 ;
+    private static final double SPAWNS_PER_MINUTE = 50;
     private static final double SPAWNS_PER_SECOND = SPAWNS_PER_MINUTE/60.0;
     private static final double UPDATES_PER_SPAWN = MainThread.MAX_UPS/SPAWNS_PER_SECOND;
     private static double updateUntilNextSpawn = UPDATES_PER_SPAWN;
     private final Ghost ghost;
-    private static final double SPEED_PIXELS_PER_SECOND = Ghost.SPEED_PIXELS_PER_SECOND*0.4;
+    public static double rates = 0.7;
+    public static boolean firstSpawn = true;
+    private static final double SPEED_PIXELS_PER_SECOND = Ghost.SPEED_PIXELS_PER_SECOND*rates;
     private static final double MAX_SPEED =SPEED_PIXELS_PER_SECOND / MainThread.MAX_UPS;
 
     public Enemy(Context context, Ghost ghost, double x, double y, double radius) {
@@ -26,8 +28,8 @@ public class Enemy extends Circle{
         super(
                 context,
                 ContextCompat.getColor(context, R.color.enemy),
-                Math.random()*1000,
-                Math.random()*1000,
+                ghost.getPositionX() + (Math.random()*2-1.00)*2500,
+                ghost.getPositionY() + (Math.random()*2-1.00)*3500,
                 30
         );
         this.ghost =ghost;
@@ -41,6 +43,14 @@ public class Enemy extends Circle{
             updateUntilNextSpawn--;
             return false;
         }
+    }
+
+    public static boolean getfirstSpawn(){
+        return firstSpawn;
+    }
+
+    public static void setfirstSpawn(boolean state){
+        firstSpawn = state;
     }
 
     @Override
@@ -67,6 +77,9 @@ public class Enemy extends Circle{
         //update enemy position
         x+=velocityX;
         y+=velocityY;
+
+        aimDirectionX = directionX*-1;
+        aimDirectionY = directionY*-1;
 
     }
 

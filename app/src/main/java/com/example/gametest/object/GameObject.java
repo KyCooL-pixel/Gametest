@@ -10,6 +10,10 @@ public abstract class GameObject {
     protected double velocityY;
     protected double directionX = 1.0;
     protected double directionY;
+    protected double AimVelocityX;
+    protected double AimVelocityY;
+    protected double aimDirectionX;
+    protected double aimDirectionY;
 
     public GameObject(double x, double y){
         this.x =x;
@@ -29,7 +33,7 @@ public abstract class GameObject {
         return y;
     }
 
-    protected static double getDistanceBetweenObjects(GameObject obj1, GameObject obj2) {
+    public static double getDistanceBetweenObjects(GameObject obj1, GameObject obj2) {
         return Math.sqrt(
                 Math.pow(obj2.getPositionX() -obj1.getPositionX(),2)+
                         Math.pow(obj2.getPositionY() -obj1.getPositionY(),2)
@@ -43,5 +47,9 @@ public abstract class GameObject {
     public double getDirectionY() {
         return directionY;
     }
+
+    public double getAimDirectionX(){return aimDirectionX;}
+
+    public double getAimDirectionY(){return aimDirectionY;}
 }
 

@@ -15,6 +15,7 @@ import com.example.gametest.gamepanel.GameOver;
 import com.example.gametest.gamepanel.Joystick;
 import com.example.gametest.object.Circle;
 import com.example.gametest.object.Enemy;
+import com.example.gametest.object.GameObject;
 import com.example.gametest.object.Ghost;
 
 import java.util.ArrayList;
@@ -22,15 +23,32 @@ import java.util.Iterator;
 import java.util.List;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
-
+    // initialize
     private MainThread thread;
     private final Ghost ghost;
     private final Joystick joystick;
+
+    private int numberOfSpellsToCast = 0;
+    // attack speed parameters
+    public int numberOfUpdatesToWait = 50;
+    public int numberOfUpdates =0;
+
+    //Initialize target selection variables
+    public double MinDistanceBetweenGhostAndEnemy = 2147483647;
+    public int EnemyReference;
+
+    // initialize list for spells and enemy
     private List<Enemy> enemyList = new ArrayList<>();
     private List<Spell> spellList = new ArrayList<>();
+
+    // Initialize game panel and display
     private int joystickPointerId = 0;
     private GameOver gameOver;
     private GameDisplay gameDisplay;
+
+    //Logic and Array Control
+    boolean ListModified = false;
+    int Correction = (ListModified)?1 :0;
 
     public GameView(Context context) {
         super(context);
@@ -43,8 +61,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         gameOver = new GameOver(context);
         joystick = new Joystick(550, 1900, 130, 80);
 
+        //initialize abstract objects
+
         // initialize game objects
-        ghost = new Ghost(getContext(), joystick, 500, 1000, 30);
+        ghost = new Ghost(getContext(), joystick,0, 0, 30);
 
         //  initialize game display and center around player
         DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -63,15 +83,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (joystick.getIsPressed()) {
                     //joystick pressed liao before this -> shoot spell
-                    spellList.add(new Spell(getContext(), ghost));
                 } else if (joystick.isPressed((double) event.getX(), (double) event.getY())) {
                     // Joystick is pressed now -> setIsPressed = true and store id
                     joystickPointerId =event.getPointerId((event.getActionIndex()));
                     joystick.setIsPressed(true);
                 } else {
-                    spellList.add(new Spell(getContext(), ghost));
                     //joystick was not pressed before and for now (this update) -> shoot spell
-
                 }
                 return true;
 
@@ -120,6 +137,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void update() {
+        //Initialize shoot direction
         // if game over stop thread (update)
         if(ghost.getHealthPoints()<=0){
             return;
@@ -129,37 +147,86 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         joystick.update();
         ghost.update();
         //Spawn enemy if it's time
-        if (Enemy.readyToSpawn()) {
+        if (Enemy.readyToSpawn()||Enemy.getfirstSpawn()) {
             enemyList.add(new Enemy(getContext(), ghost));
+            enemyList.add(new Enemy(getContext(), ghost));
+            enemyList.add(new Enemy(getContext(), ghost));
+            Enemy.setfirstSpawn(false);
         }
         // update state of each enemy
         for (Enemy enemy : enemyList) {
             enemy.update();
         }
+        //Initialize shoot direction
+        int i =0;
+        int tempposition =1;
+
         // update state of each spell
-        for (Spell spell : spellList) {
-            spell.update();
+        /*
+        while(numberOfSpellsToCast >0){
+            spellList.add(new Spell(getContext(), ghost));
+            numberOfSpellsToCast --;
         }
+        */
         //
         //  COLLISION CHECK HERE !!!!!!!!
         //
         //Iterate through enemyList and check for collision for enemy, ghost and spells
-        for (Enemy enemy : enemyList) {
+        Iterator<Enemy> iteratorEnemy = enemyList.iterator();
+        while(iteratorEnemy.hasNext()){
+            Circle enemy = iteratorEnemy.next();
             if (Circle.isColliding(enemy, ghost)) {
                 // CHANGE HERE TO CHANGE WHAT HAPPENS WHEN COLLISION TAKE PLACE
                 enemyList.remove(enemy);
+                ListModified = true;
                 ghost.setHealthPoints(ghost.getHealthPoints()-1);
                 // if hit by player no need to check again for spells
                 continue;
             }
-            for (Spell spell : spellList) {
+            Iterator<Spell> iteratorSpell = spellList.iterator();
+            while(iteratorSpell.hasNext()) {
+                Circle spell = iteratorSpell.next();
                 // remove spell if collides with enemy
                 if (Circle.isColliding(spell, enemy)) {
                     spellList.remove(spell);
                     enemyList.remove(enemy);
+                    ListModified = true;
+
                     break;
                 }
             }
+        }
+        for(Enemy enemy :enemyList){
+            double thisDistance = Circle.getDistanceBetweenObjects(enemy, ghost);
+            double CurrentDistance = Circle.getDistanceBetweenObjects(enemyList.get(EnemyReference),ghost);
+            Log.d("Reference", Double.toString(CurrentDistance));
+            if (thisDistance < MinDistanceBetweenGhostAndEnemy || thisDistance < CurrentDistance) {
+                MinDistanceBetweenGhostAndEnemy = thisDistance;
+                // Is struggling on how to fetch the position of that particular "closest" enemy to ghost, this is what i found on StackOverFlow
+                EnemyReference = i;
+
+                Log.d("ReferenceC", Integer.toString(EnemyReference));
+            }
+            while(numberOfSpellsToCast >0){
+                Log.d("Reference", Integer.toString(EnemyReference));
+                spellList.add(new Spell(getContext(), ghost, enemyList.get(EnemyReference)));
+                ListModified =false;
+                numberOfSpellsToCast --;
+            }
+            i++;
+        }
+        Log.d("Cycle", "one cycle");
+        if(numberOfUpdates == numberOfUpdatesToWait){
+            numberOfSpellsToCast ++;
+            numberOfUpdates =0;
+        }else{
+            numberOfUpdates++;
+        }
+
+        // auto case a spell after waiting for updates
+
+        for (Spell spell : spellList) {
+            spell.update();
         }
         gameDisplay.update();
     }

@@ -26,8 +26,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private MainThread thread;
     private final Ghost ghost;
     private final Joystick joystick;
-    private List<Enemy> enemyList = new ArrayList<Enemy>();
-    private List<Spell> spellList = new ArrayList<Spell>();
+    private List<Enemy> enemyList = new ArrayList<>();
+    private List<Spell> spellList = new ArrayList<>();
     private int joystickPointerId = 0;
     private GameOver gameOver;
     private GameDisplay gameDisplay;

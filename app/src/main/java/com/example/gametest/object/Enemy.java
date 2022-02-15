@@ -8,15 +8,19 @@ import com.example.gametest.MainThread;
 import com.example.gametest.R;
 
 public class Enemy extends Circle{
-
-    private static final double SPAWNS_PER_MINUTE = 50;
+    // enemy stats
+    private static final double SPAWNS_PER_MINUTE = 300;
     private static final double SPAWNS_PER_SECOND = SPAWNS_PER_MINUTE/60.0;
     private static final double UPDATES_PER_SPAWN = MainThread.MAX_UPS/SPAWNS_PER_SECOND;
     private static double updateUntilNextSpawn = UPDATES_PER_SPAWN;
+    public static double ENEMY_SPEED_RATES = 0.6;
+    public double RandomSpawnX;
+    public double RandomSpawnY;
+
     private final Ghost ghost;
-    public static double rates = 0.7;
+
     public static boolean firstSpawn = true;
-    private static final double SPEED_PIXELS_PER_SECOND = Ghost.SPEED_PIXELS_PER_SECOND*rates;
+    private static final double SPEED_PIXELS_PER_SECOND = Ghost.SPEED_PIXELS_PER_SECOND*ENEMY_SPEED_RATES;
     private static final double MAX_SPEED =SPEED_PIXELS_PER_SECOND / MainThread.MAX_UPS;
 
     public Enemy(Context context, Ghost ghost, double x, double y, double radius) {
@@ -28,8 +32,9 @@ public class Enemy extends Circle{
         super(
                 context,
                 ContextCompat.getColor(context, R.color.enemy),
-                ghost.getPositionX() + (Math.random()*2-1.00)*2500,
-                ghost.getPositionY() + (Math.random()*2-1.00)*3500,
+                // should determine a game frame for spawning
+                ghost.getPositionX() + ((Math.round((Math.random()*2)*Math.pow(10,1))/Math.pow(10,1))-1.00)*5000,
+                ghost.getPositionY() + ((Math.round((Math.random()*2)*Math.pow(10,1))/Math.pow(10,1))-1.00)*8000,
                 30
         );
         this.ghost =ghost;
@@ -52,6 +57,24 @@ public class Enemy extends Circle{
     public static void setfirstSpawn(boolean state){
         firstSpawn = state;
     }
+
+    public double setRandomSpawnX(){
+        if(Math.random()%2==0)
+            RandomSpawnX =ghost.getPositionX()+3500;
+        else
+            RandomSpawnX =ghost.getPositionX()-3500;
+        return RandomSpawnX;
+    }
+
+    public double setRandomSpawnY(){
+        if(Math.random()%2==0)
+            RandomSpawnX =ghost.getPositionY()+5500;
+        else
+            RandomSpawnX =ghost.getPositionY()-5500;
+        return RandomSpawnY;
+    }
+
+
 
     @Override
     public void update() {

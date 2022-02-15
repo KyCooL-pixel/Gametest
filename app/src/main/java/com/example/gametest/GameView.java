@@ -46,9 +46,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private GameOver gameOver;
     private GameDisplay gameDisplay;
 
-    //Logic and Array Control
-    boolean ListModified = false;
-    int Correction = (ListModified)?1 :0;
+
+
 
     public GameView(Context context) {
         super(context);
@@ -64,7 +63,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         //initialize abstract objects
 
         // initialize game objects
-        ghost = new Ghost(getContext(), joystick,0, 0, 30);
+        ghost = new Ghost(getContext(), joystick,0, 0, 50);
 
         //  initialize game display and center around player
         DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -148,7 +147,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         ghost.update();
         //Spawn enemy if it's time
         if (Enemy.readyToSpawn()||Enemy.getfirstSpawn()) {
-            for(int i=0;i<2;i++) {
+            for(int i=0;i<4;i++) {
                 enemyList.add(new Enemy(getContext(), ghost));
                 Enemy.setfirstSpawn(false);
             }
@@ -170,7 +169,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             if (Circle.isColliding(enemy, ghost)) {
                 // CHANGE HERE TO CHANGE WHAT HAPPENS WHEN COLLISION TAKE PLACE
                 iteratorEnemy.remove();
-                ListModified = true;
                 ghost.setHealthPoints(ghost.getHealthPoints()-1);
                 // if hit by player no need to check again for spells
                 continue;
@@ -182,7 +180,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 if (Circle.isColliding(spell, enemy)) {
                     iteratorSpell.remove();
                     iteratorEnemy.remove();
-                    ListModified = true;
+
 
                     break;
                 }
@@ -193,7 +191,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         for(Enemy enemy :enemyList){
             double thisDistance = Circle.getDistanceBetweenObjects(enemy, ghost);
             // problem here, if the last  locked nearest enemy is destroyed before comparing the closest now to it, array out of bound error
-            // kinda cheated here, can u see? 
+            // kinda cheated here, can u see?
             if(EnemyReference < enemyList.size())
                 CurrentDistance = Circle.getDistanceBetweenObjects(enemyList.get(EnemyReference),ghost);
             Log.d("Reference", Double.toString(CurrentDistance));
@@ -206,7 +204,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             while(numberOfSpellsToCast >0){
                 Log.d("Reference", Integer.toString(EnemyReference));
                 spellList.add(new Spell(getContext(), ghost, enemyList.get(EnemyReference)));
-                ListModified =false;
                 numberOfSpellsToCast --;
             }
             i++;

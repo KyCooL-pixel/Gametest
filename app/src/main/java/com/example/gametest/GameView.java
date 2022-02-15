@@ -34,7 +34,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     public int numberOfUpdates =0;
 
     //Initialize target selection variables
-    public double MinDistanceBetweenGhostAndEnemy = 2147483647;
+  //  public double MinDistanceBetweenGhostAndEnemy = 2147483647;
     public int EnemyReference;
 
     // initialize list for spells and enemy
@@ -46,9 +46,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private GameOver gameOver;
     private GameDisplay gameDisplay;
 
-    //Logic and Array Control
-    boolean ListModified = false;
-    int Correction = (ListModified)?1 :0;
+
+
 
     public GameView(Context context) {
         super(context);
@@ -64,7 +63,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         //initialize abstract objects
 
         // initialize game objects
-        ghost = new Ghost(getContext(), joystick,0, 0, 30);
+        ghost = new Ghost(getContext(), joystick,0, 0, 50);
 
         //  initialize game display and center around player
         DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -148,10 +147,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         ghost.update();
         //Spawn enemy if it's time
         if (Enemy.readyToSpawn()||Enemy.getfirstSpawn()) {
-            enemyList.add(new Enemy(getContext(), ghost));
-            enemyList.add(new Enemy(getContext(), ghost));
-            enemyList.add(new Enemy(getContext(), ghost));
-            Enemy.setfirstSpawn(false);
+            for(int i=0;i<4;i++) {
+                enemyList.add(new Enemy(getContext(), ghost));
+                Enemy.setfirstSpawn(false);
+            }
         }
         // update state of each enemy
         for (Enemy enemy : enemyList) {
@@ -160,14 +159,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         //Initialize shoot direction
         int i =0;
         int tempposition =1;
-
-        // update state of each spell
-        /*
-        while(numberOfSpellsToCast >0){
-            spellList.add(new Spell(getContext(), ghost));
-            numberOfSpellsToCast --;
-        }
-        */
         //
         //  COLLISION CHECK HERE !!!!!!!!
         //
@@ -177,8 +168,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             Circle enemy = iteratorEnemy.next();
             if (Circle.isColliding(enemy, ghost)) {
                 // CHANGE HERE TO CHANGE WHAT HAPPENS WHEN COLLISION TAKE PLACE
-                enemyList.remove(enemy);
-                ListModified = true;
+                iteratorEnemy.remove();
                 ghost.setHealthPoints(ghost.getHealthPoints()-1);
                 // if hit by player no need to check again for spells
                 continue;
@@ -188,21 +178,25 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 Circle spell = iteratorSpell.next();
                 // remove spell if collides with enemy
                 if (Circle.isColliding(spell, enemy)) {
-                    spellList.remove(spell);
-                    enemyList.remove(enemy);
-                    ListModified = true;
+                    iteratorSpell.remove();
+                    iteratorEnemy.remove();
+
 
                     break;
                 }
             }
         }
+        double CurrentDistance = 2147483647;
+        // Min Distance Check here
         for(Enemy enemy :enemyList){
             double thisDistance = Circle.getDistanceBetweenObjects(enemy, ghost);
-            double CurrentDistance = Circle.getDistanceBetweenObjects(enemyList.get(EnemyReference),ghost);
+            // problem here, if the last  locked nearest enemy is destroyed before comparing the closest now to it, array out of bound error
+            // kinda cheated here, can u see?
+            if(EnemyReference < enemyList.size())
+                CurrentDistance = Circle.getDistanceBetweenObjects(enemyList.get(EnemyReference),ghost);
             Log.d("Reference", Double.toString(CurrentDistance));
-            if (thisDistance < MinDistanceBetweenGhostAndEnemy || thisDistance < CurrentDistance) {
-                MinDistanceBetweenGhostAndEnemy = thisDistance;
-                // Is struggling on how to fetch the position of that particular "closest" enemy to ghost, this is what i found on StackOverFlow
+            if (thisDistance < CurrentDistance) {
+                CurrentDistance = thisDistance;
                 EnemyReference = i;
 
                 Log.d("ReferenceC", Integer.toString(EnemyReference));
@@ -210,7 +204,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             while(numberOfSpellsToCast >0){
                 Log.d("Reference", Integer.toString(EnemyReference));
                 spellList.add(new Spell(getContext(), ghost, enemyList.get(EnemyReference)));
-                ListModified =false;
                 numberOfSpellsToCast --;
             }
             i++;

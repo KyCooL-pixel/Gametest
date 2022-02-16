@@ -13,7 +13,7 @@ import com.example.gametest.R;
 import com.example.gametest.Utils;
 
 public class Ghost extends Circle {
-    public static final double SPEED_PIXELS_PER_SECOND = 300.0;
+    public static final double SPEED_PIXELS_PER_SECOND = 250.0;
     public static final double MAX_SPEED =SPEED_PIXELS_PER_SECOND / MainThread.MAX_UPS;
     public static int MAX_HEALTH_POINTS = 100;
     private final Joystick joystick;

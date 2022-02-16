@@ -33,6 +33,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     public int numberOfUpdatesToWait = 50;
     public int numberOfUpdates =0;
 
+
     //Initialize target selection variables
   //  public double MinDistanceBetweenGhostAndEnemy = 2147483647;
     public int EnemyReference;
@@ -138,7 +139,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     public void update() {
         //Initialize shoot direction
         // if game over stop thread (update)
-        if(ghost.getHealthPoints()<=0){
+        if (ghost.getHealthPoints() <= 0) {
             return;
         }
 
@@ -146,8 +147,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         joystick.update();
         ghost.update();
         //Spawn enemy if it's time
-        if (Enemy.readyToSpawn()||Enemy.getfirstSpawn()) {
-            for(int i=0;i<4;i++) {
+        if (Enemy.readyToSpawn() || Enemy.getfirstSpawn()) {
+            for (int i = 0; i < 7; i++) {
                 enemyList.add(new Enemy(getContext(), ghost));
                 Enemy.setfirstSpawn(false);
             }
@@ -157,24 +158,31 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             enemy.update();
         }
         //Initialize shoot direction
-        int i =0;
-        int tempposition =1;
+        int i = 0;
+        int tempposition = 1;
         //
         //  COLLISION CHECK HERE !!!!!!!!
         //
         //Iterate through enemyList and check for collision for enemy, ghost and spells
         Iterator<Enemy> iteratorEnemy = enemyList.iterator();
-        while(iteratorEnemy.hasNext()){
+        while (iteratorEnemy.hasNext()) {
             Circle enemy = iteratorEnemy.next();
             if (Circle.isColliding(enemy, ghost)) {
                 // CHANGE HERE TO CHANGE WHAT HAPPENS WHEN COLLISION TAKE PLACE
                 iteratorEnemy.remove();
-                ghost.setHealthPoints(ghost.getHealthPoints()-1);
+                ghost.setHealthPoints(ghost.getHealthPoints() - 1);
                 // if hit by player no need to check again for spells
                 continue;
             }
+            //Despawn if too far away from player
+            if(Circle.isTooFar(enemy,ghost)) {
+                iteratorEnemy.remove();
+                Log.d("Die","removed");
+            }
+
+
             Iterator<Spell> iteratorSpell = spellList.iterator();
-            while(iteratorSpell.hasNext()) {
+            while (iteratorSpell.hasNext()) {
                 Circle spell = iteratorSpell.next();
                 // remove spell if collides with enemy
                 if (Circle.isColliding(spell, enemy)) {
@@ -186,29 +194,31 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 }
             }
         }
+
+
         double CurrentDistance = 2147483647;
         // Min Distance Check here
-        for(Enemy enemy :enemyList){
-            double thisDistance = Circle.getDistanceBetweenObjects(enemy, ghost);
-            // problem here, if the last  locked nearest enemy is destroyed before comparing the closest now to it, array out of bound error
-            // kinda cheated here, can u see?
-            if(EnemyReference < enemyList.size())
-                CurrentDistance = Circle.getDistanceBetweenObjects(enemyList.get(EnemyReference),ghost);
-            Log.d("Reference", Double.toString(CurrentDistance));
-            if (thisDistance < CurrentDistance) {
-                CurrentDistance = thisDistance;
-                EnemyReference = i;
+            for(Enemy enemy :enemyList) {
+                double thisDistance = Circle.getDistanceBetweenObjects(enemy, ghost);
+                if (EnemyReference < enemyList.size())
+                    CurrentDistance = Circle.getDistanceBetweenObjects(enemyList.get(EnemyReference), ghost);
+                Log.d("Reference", Double.toString(CurrentDistance));
+                if (thisDistance < CurrentDistance) {
+                    CurrentDistance = thisDistance;
+                    EnemyReference = i;
 
-                Log.d("ReferenceC", Integer.toString(EnemyReference));
+                    Log.d("ReferenceC", Integer.toString(EnemyReference));
+                }
+                while (numberOfSpellsToCast > 0) {
+                    Log.d("Reference", Integer.toString(EnemyReference));
+                    spellList.add(new Spell(getContext(), ghost, enemyList.get(EnemyReference)));
+                    numberOfSpellsToCast--;
+                }
+                i++;
             }
-            while(numberOfSpellsToCast >0){
-                Log.d("Reference", Integer.toString(EnemyReference));
-                spellList.add(new Spell(getContext(), ghost, enemyList.get(EnemyReference)));
-                numberOfSpellsToCast --;
-            }
-            i++;
-        }
-        Log.d("Cycle", "one cycle");
+
+
+        //keep count of numberOfUpdates to shoot a spell
         if(numberOfUpdates == numberOfUpdatesToWait){
             numberOfSpellsToCast ++;
             numberOfUpdates =0;

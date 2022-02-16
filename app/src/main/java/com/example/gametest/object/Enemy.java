@@ -13,7 +13,7 @@ public class Enemy extends Circle{
     private static final double SPAWNS_PER_SECOND = SPAWNS_PER_MINUTE/60.0;
     private static final double UPDATES_PER_SPAWN = MainThread.MAX_UPS/SPAWNS_PER_SECOND;
     private static double updateUntilNextSpawn = UPDATES_PER_SPAWN;
-    public static double ENEMY_SPEED_RATES = 0.6;
+    public static double ENEMY_SPEED_RATES = 0.42;
     public double RandomSpawnX;
     public double RandomSpawnY;
 
@@ -58,21 +58,6 @@ public class Enemy extends Circle{
         firstSpawn = state;
     }
 
-    public double setRandomSpawnX(){
-        if(Math.random()%2==0)
-            RandomSpawnX =ghost.getPositionX()+3500;
-        else
-            RandomSpawnX =ghost.getPositionX()-3500;
-        return RandomSpawnX;
-    }
-
-    public double setRandomSpawnY(){
-        if(Math.random()%2==0)
-            RandomSpawnX =ghost.getPositionY()+5500;
-        else
-            RandomSpawnX =ghost.getPositionY()-5500;
-        return RandomSpawnY;
-    }
 
 
 
@@ -98,8 +83,16 @@ public class Enemy extends Circle{
         }
 
         //update enemy position
-        x+=velocityX;
-        y+=velocityY;
+        // offset for avoiding stacking
+        if(Math.random()>0.02){
+            x+=velocityX;
+            y+=velocityY;
+        }
+        else{
+            x+=velocityX+(Math.random()*8-8);
+            y+=velocityY+(Math.random()*8-8);
+
+        }
 
         aimDirectionX = directionX*-1;
         aimDirectionY = directionY*-1;

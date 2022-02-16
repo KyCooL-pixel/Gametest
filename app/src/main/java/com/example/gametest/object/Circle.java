@@ -22,7 +22,14 @@ public abstract class Circle extends GameObject {
         return distance < distanceToCollision;
     }
 
+    public static boolean isTooFar(Circle obj1, Circle obj2){
+        double distance = getDistanceBetweenObjects(obj1,obj2);
+        return distance > 2500;
+    }
+
     private double getRadius(){return radius;}
+
+
 
     public void draw(Canvas canvas, GameDisplay gameDisplay){
 
